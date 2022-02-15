@@ -5,7 +5,6 @@
 package sphinxql
 
 import (
-	"bytes"
 	"fmt"
 	"sort"
 	"strings"
@@ -25,15 +24,15 @@ type RankerOptionValue = UnquotedString
 // RankerOptionValue enum
 const (
 	RankerProximityBM25 RankerOptionValue = "proximity_bm25"
-	RankerBM25                            = "bm25"
-	RankerNone                            = "none"
-	RankerWordCount                       = "wordcount"
-	RankerProximity                       = "proximity"
-	RankerMatchAny                        = "matchany"
-	RankerFieldMask                       = "fieldmask"
-	RankerSPH04                           = "sph04"
-	RankerExpr                            = "expr"
-	RankerExport                          = "export"
+	RankerBM25          RankerOptionValue = "bm25"
+	RankerNone          RankerOptionValue = "none"
+	RankerWordCount     RankerOptionValue = "wordcount"
+	RankerProximity     RankerOptionValue = "proximity"
+	RankerMatchAny      RankerOptionValue = "matchany"
+	RankerFieldMask     RankerOptionValue = "fieldmask"
+	RankerSPH04         RankerOptionValue = "sph04"
+	RankerExpr          RankerOptionValue = "expr"
+	RankerExport        RankerOptionValue = "export"
 )
 
 // Comment builds a comment OPTION.
@@ -43,7 +42,7 @@ func (o *Opt) Comment(value string) string {
 
 // FieldWeights builds a field_weights OPTION.
 func (o *Opt) FieldWeights(values NamedIntegerList) string {
-	buf := &bytes.Buffer{}
+	buf := &strings.Builder{}
 
 	buf.WriteString("(")
 

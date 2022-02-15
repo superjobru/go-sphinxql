@@ -5,7 +5,6 @@
 package sphinxql
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -99,7 +98,7 @@ func (args *Args) Compile(format string, initialValue ...interface{}) (query str
 //
 // See doc for `Compile` to learn details.
 func (args *Args) CompileWithFlavor(format string, flavor Flavor, initialValue ...interface{}) (query string, values []interface{}) {
-	buf := &bytes.Buffer{}
+	buf := &strings.Builder{}
 	idx := strings.IndexRune(format, '$')
 	offset := 0
 	values = initialValue
@@ -162,7 +161,7 @@ func (args *Args) CompileWithFlavor(format string, flavor Flavor, initialValue .
 	return
 }
 
-func (args *Args) compileNamed(buf *bytes.Buffer, flavor Flavor, format string, values []interface{}) (string, []interface{}) {
+func (args *Args) compileNamed(buf *strings.Builder, flavor Flavor, format string, values []interface{}) (string, []interface{}) {
 	i := 1
 
 	for ; i < len(format) && format[i] != '}'; i++ {
@@ -184,7 +183,7 @@ func (args *Args) compileNamed(buf *bytes.Buffer, flavor Flavor, format string, 
 	return format, values
 }
 
-func (args *Args) compileDigits(buf *bytes.Buffer, flavor Flavor, format string, values []interface{}, offset int) (string, []interface{}, int) {
+func (args *Args) compileDigits(buf *strings.Builder, flavor Flavor, format string, values []interface{}, offset int) (string, []interface{}, int) {
 	i := 1
 
 	for ; i < len(format) && '0' <= format[i] && format[i] <= '9'; i++ {
@@ -201,7 +200,7 @@ func (args *Args) compileDigits(buf *bytes.Buffer, flavor Flavor, format string,
 	return format, values, offset
 }
 
-func (args *Args) compileSuccessive(buf *bytes.Buffer, flavor Flavor, format string, values []interface{}, offset int) (string, []interface{}, int) {
+func (args *Args) compileSuccessive(buf *strings.Builder, flavor Flavor, format string, values []interface{}, offset int) (string, []interface{}, int) {
 	if offset >= len(args.args) {
 		return format, values, offset
 	}
@@ -212,7 +211,7 @@ func (args *Args) compileSuccessive(buf *bytes.Buffer, flavor Flavor, format str
 	return format, values, offset + 1
 }
 
-func (args *Args) compileArg(buf *bytes.Buffer, flavor Flavor, values []interface{}, arg interface{}) []interface{} {
+func (args *Args) compileArg(buf *strings.Builder, flavor Flavor, values []interface{}, arg interface{}) []interface{} {
 	switch a := arg.(type) {
 	case Builder:
 		var s string

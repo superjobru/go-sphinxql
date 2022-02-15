@@ -5,7 +5,6 @@
 package sphinxql
 
 import (
-	"bytes"
 	"math"
 	"reflect"
 	"regexp"
@@ -112,7 +111,7 @@ func (s *Struct) SelectFromForTag(table string, tag string) *SelectBuilder {
 	if ok {
 		fields = s.quoteFields(sf, fields)
 
-		buf := &bytes.Buffer{}
+		buf := &strings.Builder{}
 		cols := make([]string, 0, len(fields))
 
 		for _, field := range fields {

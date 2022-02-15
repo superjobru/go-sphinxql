@@ -5,7 +5,6 @@
 package sphinxql
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -199,7 +198,7 @@ func (sb *SelectBuilder) Build() (sql string, args []interface{}) {
 // BuildWithFlavor returns compiled SELECT string and args with flavor and initial args.
 // They can be used in `DB#Query` of package `database/sql` directly.
 func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{}) (sql string, args []interface{}) {
-	buf := &bytes.Buffer{}
+	buf := &strings.Builder{}
 	sb.injection.WriteTo(buf, selectMarkerInit)
 	buf.WriteString("SELECT ")
 

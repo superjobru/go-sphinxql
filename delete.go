@@ -5,7 +5,6 @@
 package sphinxql
 
 import (
-	"bytes"
 	"strings"
 )
 
@@ -80,7 +79,7 @@ func (db *DeleteBuilder) Build() (sql string, args []interface{}) {
 // BuildWithFlavor returns compiled DELETE string and args with flavor and initial args.
 // They can be used in `DB#Query` of package `database/sql` directly.
 func (db *DeleteBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{}) (sql string, args []interface{}) {
-	buf := &bytes.Buffer{}
+	buf := &strings.Builder{}
 	db.injection.WriteTo(buf, deleteMarkerInit)
 	buf.WriteString("DELETE FROM ")
 	buf.WriteString(db.table)

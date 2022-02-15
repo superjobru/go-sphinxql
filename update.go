@@ -5,7 +5,6 @@
 package sphinxql
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 )
@@ -45,7 +44,6 @@ type UpdateBuilder struct {
 	table       string
 	assignments []string
 	whereExprs  []string
-	orderByCols []string
 	optionExprs []string
 
 	args *Args
@@ -152,7 +150,7 @@ func (ub *UpdateBuilder) Build() (sql string, args []interface{}) {
 // BuildWithFlavor returns compiled UPDATE string and args with flavor and initial args.
 // They can be used in `DB#Query` of package `database/sql` directly.
 func (ub *UpdateBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{}) (sql string, args []interface{}) {
-	buf := &bytes.Buffer{}
+	buf := &strings.Builder{}
 	ub.injection.WriteTo(buf, updateMarkerInit)
 	buf.WriteString("UPDATE ")
 	buf.WriteString(ub.table)
