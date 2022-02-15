@@ -71,13 +71,13 @@ func (ib *InsertBuilder) InsertIgnoreInto(table string) *InsertBuilder {
 }
 
 // ReplaceInto sets table name and changes the verb of ib to REPLACE.
-// REPLACE INTO is a MySQL extension to the SQL standard.
+// REPLACE INTO is a SphinxQL extension to the SQL standard.
 func ReplaceInto(table string) *InsertBuilder {
 	return DefaultFlavor.NewInsertBuilder().ReplaceInto(table)
 }
 
 // ReplaceInto sets table name and changes the verb of ib to REPLACE.
-// REPLACE INTO is a MySQL extension to the SQL standard.
+// REPLACE INTO is a SphinxQL extension to the SQL standard.
 func (ib *InsertBuilder) ReplaceInto(table string) *InsertBuilder {
 	ib.verb = "REPLACE"
 	ib.table = Escape(table)

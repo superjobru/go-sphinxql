@@ -12,27 +12,24 @@ import (
 const (
 	invalidFlavor Flavor = iota
 
-	MySQL
-	PostgreSQL
-	SQLite
-	SQLServer
+	SphinxQL
 )
 
 var (
 	// DefaultFlavor is the default flavor for all builders.
-	DefaultFlavor = MySQL
+	DefaultFlavor = SphinxQL
 )
 
 var (
 	// ErrInterpolateNotImplemented means the method or feature is not implemented right now.
-	ErrInterpolateNotImplemented = errors.New("go-sqlbuilder: interpolation for this flavor is not implemented")
+	ErrInterpolateNotImplemented = errors.New("go-sphinxql: interpolation for this flavor is not implemented")
 
 	// ErrInterpolateMissingArgs means there are some args missing in query, so it's not possible to
 	// prepare a query with such args.
-	ErrInterpolateMissingArgs = errors.New("go-sqlbuilder: not enough args when interpolating")
+	ErrInterpolateMissingArgs = errors.New("go-sphinxql: not enough args when interpolating")
 
 	// ErrInterpolateUnsupportedArgs means that some types of the args are not supported.
-	ErrInterpolateUnsupportedArgs = errors.New("go-sqlbuilder: unsupported args when interpolating")
+	ErrInterpolateUnsupportedArgs = errors.New("go-sphinxql: unsupported args when interpolating")
 )
 
 // Flavor is the flag to control the format of compiled sql.
@@ -41,14 +38,8 @@ type Flavor int
 // String returns the name of f.
 func (f Flavor) String() string {
 	switch f {
-	case MySQL:
-		return "MySQL"
-	case PostgreSQL:
-		return "PostgreSQL"
-	case SQLite:
-		return "SQLite"
-	case SQLServer:
-		return "SQLServer"
+	case SphinxQL:
+		return "SphinxQL"
 	}
 
 	return "<invalid>"
@@ -61,14 +52,8 @@ func (f Flavor) String() string {
 // returns ErrMissingArgs error.
 func (f Flavor) Interpolate(sql string, args []interface{}) (string, error) {
 	switch f {
-	case MySQL:
-		return mysqlInterpolate(sql, args...)
-	case PostgreSQL:
-		return postgresqlInterpolate(sql, args...)
-	case SQLite:
-		return sqliteInterpolate(sql, args...)
-	case SQLServer:
-		return sqlserverInterpolate(sql, args...)
+	case SphinxQL:
+		return sphinxqlInterpolate(sql, args...)
 	}
 
 	return "", ErrInterpolateNotImplemented
@@ -119,14 +104,11 @@ func (f Flavor) NewUnionBuilder() *UnionBuilder {
 // Quote adds quote for name to make sure the name can be used safely
 // as table name or field name.
 //
-//     * For MySQL, use back quote (`) to quote name;
-//     * For PostgreSQL, SQL Server and SQLite, use double quote (") to quote name.
+//     * For SphinxQL, use back quote (`) to quote name;
 func (f Flavor) Quote(name string) string {
 	switch f {
-	case MySQL:
+	case SphinxQL:
 		return fmt.Sprintf("`%s`", name)
-	case PostgreSQL, SQLServer, SQLite:
-		return fmt.Sprintf(`"%s"`, name)
 	}
 
 	return name

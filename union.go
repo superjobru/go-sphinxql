@@ -134,30 +134,15 @@ func (ub *UnionBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{}
 	ub.injection.WriteTo(buf, unionMarkerInit)
 
 	if len(ub.builders) > 0 {
-		needParen := flavor != SQLite
-
-		if needParen {
-			buf.WriteRune('(')
-		}
-
+		buf.WriteRune('(')
 		buf.WriteString(ub.Var(ub.builders[0]))
-
-		if needParen {
-			buf.WriteRune(')')
-		}
+		buf.WriteRune(')')
 
 		for _, b := range ub.builders[1:] {
 			buf.WriteString(ub.opt)
-
-			if needParen {
-				buf.WriteRune('(')
-			}
-
+			buf.WriteRune('(')
 			buf.WriteString(ub.Var(b))
-
-			if needParen {
-				buf.WriteRune(')')
-			}
+			buf.WriteRune(')')
 		}
 	}
 
@@ -181,7 +166,7 @@ func (ub *UnionBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{}
 
 	}
 
-	if MySQL == flavor && ub.limit >= 0 || PostgreSQL == flavor {
+	if SphinxQL == flavor && ub.limit >= 0 {
 		if ub.offset >= 0 {
 			buf.WriteString(" OFFSET ")
 			buf.WriteString(strconv.Itoa(ub.offset))

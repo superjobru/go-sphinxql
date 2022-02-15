@@ -112,7 +112,7 @@ func ExampleSelectBuilder_join() {
 }
 
 func ExampleSelectBuilder_limit_offset() {
-	flavors := []Flavor{MySQL, PostgreSQL, SQLite, SQLServer}
+	flavors := []Flavor{SphinxQL}
 	results := make([][]string, len(flavors))
 	sb := NewSelectBuilder()
 	saveResults := func() {
@@ -134,9 +134,7 @@ func ExampleSelectBuilder_limit_offset() {
 
 	// Case #2: limit < 0 and offset >= 0
 	//
-	// MySQL and SQLite: Ignore offset if the limit is not set.
-	// PostgreSQL: Offset can be set without limit.
-	// SQLServer: Offset can be set without limit.
+	// SphinxQL: Ignore offset if the limit is not set.
 	sb.Limit(-1)
 	sb.Offset(0)
 	saveResults()
@@ -166,29 +164,11 @@ func ExampleSelectBuilder_limit_offset() {
 
 	// Output:
 	//
-	// MySQL
+	// SphinxQL
 	// #1: SELECT * FROM user
 	// #2: SELECT * FROM user
 	// #3: SELECT * FROM user LIMIT 1 OFFSET 0
 	// #4: SELECT * FROM user LIMIT 1
-	//
-	// PostgreSQL
-	// #1: SELECT * FROM user
-	// #2: SELECT * FROM user OFFSET 0
-	// #3: SELECT * FROM user LIMIT 1 OFFSET 0
-	// #4: SELECT * FROM user LIMIT 1
-	//
-	// SQLite
-	// #1: SELECT * FROM user
-	// #2: SELECT * FROM user
-	// #3: SELECT * FROM user LIMIT 1 OFFSET 0
-	// #4: SELECT * FROM user LIMIT 1
-	//
-	// SQLServer
-	// #1: SELECT * FROM user
-	// #2: SELECT * FROM user ORDER BY 1 OFFSET 0 ROWS
-	// #3: SELECT * FROM user ORDER BY 1 OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
-	// #4: SELECT * FROM user ORDER BY 1 OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
 }
 
 func ExampleSelectBuilder_ForUpdate() {

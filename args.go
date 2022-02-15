@@ -233,12 +233,8 @@ func (args *Args) compileArg(buf *bytes.Buffer, flavor Flavor, values []interfac
 		}
 	default:
 		switch flavor {
-		case MySQL, SQLite:
+		case SphinxQL:
 			buf.WriteRune('?')
-		case PostgreSQL:
-			fmt.Fprintf(buf, "$%d", len(values)+1)
-		case SQLServer:
-			fmt.Fprintf(buf, "@p%d", len(values)+1)
 		default:
 			panic(fmt.Errorf("Args.CompileWithFlavor: invalid flavor %v (%v)", flavor, int(flavor)))
 		}

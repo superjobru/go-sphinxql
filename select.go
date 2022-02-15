@@ -300,7 +300,7 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 	}
 
 	switch flavor {
-	case MySQL, SQLite:
+	case SphinxQL:
 		if sb.limit >= 0 {
 			buf.WriteString(" LIMIT ")
 			buf.WriteString(strconv.Itoa(sb.limit))
@@ -309,39 +309,6 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 				buf.WriteString(" OFFSET ")
 				buf.WriteString(strconv.Itoa(sb.offset))
 			}
-		}
-	case PostgreSQL:
-		if sb.limit >= 0 {
-			buf.WriteString(" LIMIT ")
-			buf.WriteString(strconv.Itoa(sb.limit))
-		}
-
-		if sb.offset >= 0 {
-			buf.WriteString(" OFFSET ")
-			buf.WriteString(strconv.Itoa(sb.offset))
-		}
-
-	case SQLServer:
-		// If ORDER BY is not set, sort column #1 by default.
-		// It's required to make OFFSET...FETCH work.
-		if len(sb.orderByCols) == 0 && (sb.limit >= 0 || sb.offset >= 0) {
-			buf.WriteString(" ORDER BY 1")
-		}
-
-		if sb.offset >= 0 {
-			buf.WriteString(" OFFSET ")
-			buf.WriteString(strconv.Itoa(sb.offset))
-			buf.WriteString(" ROWS")
-		}
-
-		if sb.limit >= 0 {
-			if sb.offset < 0 {
-				buf.WriteString(" OFFSET 0 ROWS")
-			}
-
-			buf.WriteString(" FETCH NEXT ")
-			buf.WriteString(strconv.Itoa(sb.limit))
-			buf.WriteString(" ROWS ONLY")
 		}
 	}
 

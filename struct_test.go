@@ -495,21 +495,6 @@ func ExampleStruct_buildDELETE() {
 	// [1234]
 }
 
-func ExampleStruct_forPostgreSQL() {
-	userStruct := NewStruct(new(User)).For(PostgreSQL)
-
-	sb := userStruct.SelectFrom("user")
-	sb.Where(sb.E("id", 1234))
-	sql, args := sb.Build()
-
-	fmt.Println(sql)
-	fmt.Println(args)
-
-	// Output:
-	// SELECT user.id, user.name, user.status FROM user WHERE id = $1
-	// [1234]
-}
-
 type structWithQuote struct {
 	A string  `db:"aa" fieldopt:"withquote"`
 	B int     `db:"-" fieldopt:"withquote"` // fieldopt is ignored as db is "-".
@@ -518,29 +503,17 @@ type structWithQuote struct {
 
 func TestStructWithQuote(t *testing.T) {
 	a := assert.New(t)
-	sb := NewStruct(new(structWithQuote)).For(MySQL).SelectFrom("foo")
+	sb := NewStruct(new(structWithQuote)).For(SphinxQL).SelectFrom("foo")
 	sql, _ := sb.Build()
 	a.Equal(sql, "SELECT foo.`aa`, foo.ccc FROM foo")
 
-	sb = NewStruct(new(structWithQuote)).For(PostgreSQL).SelectFrom("foo")
-	sql, _ = sb.Build()
-	a.Equal(sql, `SELECT foo."aa", foo.ccc FROM foo`)
-
-	ub := NewStruct(new(structWithQuote)).For(MySQL).Update("foo", structWithQuote{A: "aaa"})
+	ub := NewStruct(new(structWithQuote)).For(SphinxQL).Update("foo", structWithQuote{A: "aaa"})
 	sql, _ = ub.Build()
 	a.Equal(sql, "UPDATE foo SET `aa` = ?, ccc = ?")
 
-	ub = NewStruct(new(structWithQuote)).For(PostgreSQL).Update("foo", structWithQuote{A: "aaa"})
-	sql, _ = ub.Build()
-	a.Equal(sql, `UPDATE foo SET "aa" = $1, ccc = $2`)
-
-	ib := NewStruct(new(structWithQuote)).For(MySQL).InsertInto("foo", structWithQuote{A: "aaa"})
+	ib := NewStruct(new(structWithQuote)).For(SphinxQL).InsertInto("foo", structWithQuote{A: "aaa"})
 	sql, _ = ib.Build()
 	a.Equal(sql, "INSERT INTO foo (`aa`, ccc) VALUES (?, ?)")
-
-	ib = NewStruct(new(structWithQuote)).For(PostgreSQL).InsertInto("foo", structWithQuote{A: "aaa"})
-	sql, _ = ib.Build()
-	a.Equal(sql, `INSERT INTO foo ("aa", ccc) VALUES ($1, $2)`)
 }
 
 type structOmitEmpty struct {
@@ -553,7 +526,7 @@ type structOmitEmpty struct {
 
 func TestStructOmitEmpty(t *testing.T) {
 	a := assert.New(t)
-	st := NewStruct(new(structOmitEmpty)).For(MySQL)
+	st := NewStruct(new(structOmitEmpty)).For(SphinxQL)
 	sql1, _ := st.Update("foo", new(structOmitEmpty)).Build()
 
 	a.Equal(sql1, "UPDATE foo SET ee = ?")
@@ -585,7 +558,7 @@ type structOmitEmptyForTag struct {
 
 func TestStructOmitEmptyForTag(t *testing.T) {
 	a := assert.New(t)
-	st := NewStruct(new(structOmitEmptyForTag)).For(MySQL)
+	st := NewStruct(new(structOmitEmptyForTag)).For(SphinxQL)
 	sql1, _ := st.Update("foo", new(structOmitEmptyForTag)).Build()
 
 	a.Equal(sql1, "UPDATE foo SET D = ?, ee = ?")
@@ -616,7 +589,7 @@ type structOmitEmptyForMultipleTags struct {
 
 func TestStructOmitEmptyForMultipleTags(t *testing.T) {
 	a := assert.New(t)
-	st := NewStruct(new(structOmitEmptyForMultipleTags)).For(MySQL)
+	st := NewStruct(new(structOmitEmptyForMultipleTags)).For(SphinxQL)
 	sql1, _ := st.Update("foo", new(structOmitEmptyForMultipleTags)).Build()
 
 	a.Equal(sql1, "UPDATE foo SET D = ?, ee = ?")
@@ -663,7 +636,7 @@ type structWithPointers struct {
 
 func TestStructWithPointers(t *testing.T) {
 	a := assert.New(t)
-	st := NewStruct(new(structWithPointers)).For(MySQL)
+	st := NewStruct(new(structWithPointers)).For(SphinxQL)
 	sql1, _ := st.Update("foo", new(structWithPointers)).Build()
 
 	a.Equal(sql1, "UPDATE foo SET bb = ?")

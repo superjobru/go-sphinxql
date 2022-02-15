@@ -7,19 +7,18 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	"unicode"
 	"unicode/utf8"
 	"unsafe"
 )
 
-// mysqlInterpolate parses query and replace all "?" with encoded args.
+// sphinxqlInterpolate parses query and replace all "?" with encoded args.
 // If there are more "?" than len(args), returns ErrMissingArgs.
 // Otherwise, if there are less "?" than len(args), the redundant args are omitted.
-func mysqlInterpolate(query string, args ...interface{}) (string, error) {
-	return mysqlLikeInterpolate(MySQL, query, args...)
+func sphinxqlInterpolate(query string, args ...interface{}) (string, error) {
+	return sphinxqlLikeInterpolate(SphinxQL, query, args...)
 }
 
-func mysqlLikeInterpolate(flavor Flavor, query string, args ...interface{}) (string, error) {
+func sphinxqlLikeInterpolate(flavor Flavor, query string, args ...interface{}) (string, error) {
 	// Roughly estimate the size to avoid useless memory allocation and copy.
 	buf := make([]byte, 0, len(query)+len(args)*20)
 
@@ -103,287 +102,6 @@ func mysqlLikeInterpolate(flavor Flavor, query string, args ...interface{}) (str
 	return *(*string)(unsafe.Pointer(&buf)), nil
 }
 
-// postgresqlInterpolate parses query and replace all "$*" with encoded args.
-// If there are more "$*" than len(args), returns ErrMissingArgs.
-// Otherwise, if there are less "$*" than len(args), the redundant args are omitted.
-func postgresqlInterpolate(query string, args ...interface{}) (string, error) {
-	// Roughly estimate the size to avoid useless memory allocation and copy.
-	buf := make([]byte, 0, len(query)+len(args)*20)
-
-	var quote rune
-	var dollarQuote string
-	var err error
-	var idx int64
-	max := len(args)
-	escaping := false
-	offset := 0
-	target := query
-	r, sz := utf8.DecodeRuneInString(target)
-
-	for ; sz != 0; r, sz = utf8.DecodeRuneInString(target) {
-		offset += sz
-		target = query[offset:]
-
-		if escaping {
-			escaping = false
-			continue
-		}
-
-		switch r {
-		case '$':
-			if quote != 0 {
-				if quote != '$' {
-					continue
-				}
-
-				// Try to find the end of dollar quote.
-				pos := offset
-
-				for r, sz = utf8.DecodeRuneInString(target); sz != 0 && r != '$'; r, sz = utf8.DecodeRuneInString(target) {
-					pos += sz
-					target = query[pos:]
-				}
-
-				if sz == 0 {
-					break
-				}
-
-				if r == '$' {
-					dq := query[offset : pos+sz]
-					offset = pos
-					target = query[offset:]
-
-					if dq == dollarQuote {
-						quote = 0
-						dollarQuote = ""
-						offset += sz
-						target = query[offset:]
-					}
-
-					continue
-				}
-
-				continue
-			}
-
-			oldSz := sz
-			pos := offset
-			r, sz = utf8.DecodeRuneInString(target)
-
-			if '1' <= r && r <= '9' {
-				// A placeholder is found.
-				pos += sz
-				target = query[pos:]
-
-				for r, sz = utf8.DecodeRuneInString(target); sz != 0 && '0' <= r && r <= '9'; r, sz = utf8.DecodeRuneInString(target) {
-					pos += sz
-					target = query[pos:]
-				}
-
-				idx, err = strconv.ParseInt(query[offset:pos], 10, strconv.IntSize)
-
-				if err != nil {
-					return "", err
-				}
-
-				if int(idx) >= max+1 {
-					return "", ErrInterpolateMissingArgs
-				}
-
-				buf = append(buf, query[:offset-oldSz]...)
-				buf, err = encodeValue(buf, args[idx-1], PostgreSQL)
-
-				if err != nil {
-					return "", err
-				}
-
-				query = target
-				offset = 0
-
-				if sz == 0 {
-					break
-				}
-
-				continue
-			}
-
-			// Try to find the beginning of dollar quote.
-			for ; sz != 0 && r != '$' && unicode.IsLetter(r); r, sz = utf8.DecodeRuneInString(target) {
-				pos += sz
-				target = query[pos:]
-			}
-
-			if sz == 0 {
-				break
-			}
-
-			if !unicode.IsLetter(r) && r != '$' {
-				continue
-			}
-
-			pos += sz
-			quote = '$'
-			dollarQuote = query[offset:pos]
-			offset = pos
-			target = query[offset:]
-
-		case '\'':
-			if quote == '\'' {
-				// PostgreSQL uses two single quotes to represent one single quote.
-				r, sz = utf8.DecodeRuneInString(target)
-
-				if r == '\'' {
-					offset += sz
-					target = query[offset:]
-					continue
-				}
-
-				quote = 0
-				continue
-			}
-
-			if quote == 0 {
-				quote = '\''
-			}
-
-		case '"':
-			if quote == '"' {
-				quote = 0
-				continue
-			}
-
-			if quote == 0 {
-				quote = '"'
-			}
-
-		case '\\':
-			if quote == '\'' || quote == '"' {
-				escaping = true
-			}
-		}
-	}
-
-	buf = append(buf, query...)
-	return *(*string)(unsafe.Pointer(&buf)), nil
-}
-
-// sqlserverInterpolate parses query and replace all "@p*" with encoded args.
-// If there are more "@p*" than len(args), returns ErrMissingArgs.
-// Otherwise, if there are less "@p*" than len(args), the redundant args are omitted.
-func sqlserverInterpolate(query string, args ...interface{}) (string, error) {
-	// Roughly estimate the size to avoid useless memory allocation and copy.
-	buf := make([]byte, 0, len(query)+len(args)*20)
-
-	var quote rune
-	var err error
-	var idx int64
-	max := len(args)
-	escaping := false
-	offset := 0
-	target := query
-	r, sz := utf8.DecodeRuneInString(target)
-
-	for ; sz != 0; r, sz = utf8.DecodeRuneInString(target) {
-		offset += sz
-		target = query[offset:]
-
-		if escaping {
-			escaping = false
-			continue
-		}
-
-		switch r {
-		case '@':
-			if quote != 0 {
-				continue
-			}
-
-			oldSz := sz
-			pos := offset
-			r, sz = utf8.DecodeRuneInString(target)
-
-			// Only parameters starting with @p or @P are interpolated.
-			if r != 'p' && r != 'P' {
-				continue
-			}
-
-			pos += sz
-			target = query[pos:]
-			r, sz = utf8.DecodeRuneInString(target)
-
-			if '1' <= r && r <= '9' {
-				// A placeholder is found.
-				pos += sz
-				target = query[pos:]
-
-				for r, sz = utf8.DecodeRuneInString(target); sz != 0 && '0' <= r && r <= '9'; r, sz = utf8.DecodeRuneInString(target) {
-					pos += sz
-					target = query[pos:]
-				}
-
-				idx, err = strconv.ParseInt(query[offset+1:pos], 10, strconv.IntSize)
-
-				if err != nil {
-					return "", err
-				}
-
-				if int(idx) >= max+1 {
-					return "", ErrInterpolateMissingArgs
-				}
-
-				buf = append(buf, query[:offset-oldSz]...)
-				buf, err = encodeValue(buf, args[idx-1], SQLServer)
-
-				if err != nil {
-					return "", err
-				}
-
-				query = target
-				offset = 0
-
-				if sz == 0 {
-					break
-				}
-
-				continue
-			}
-
-		case '\'':
-			if quote == '\'' {
-				quote = 0
-				continue
-			}
-
-			if quote == 0 {
-				quote = '\''
-			}
-
-		case '"':
-			if quote == '"' {
-				quote = 0
-				continue
-			}
-
-			if quote == 0 {
-				quote = '"'
-			}
-
-		case '\\':
-			if quote != 0 {
-				escaping = true
-			}
-		}
-	}
-
-	buf = append(buf, query...)
-	return *(*string)(unsafe.Pointer(&buf)), nil
-}
-
-// mysqlInterpolate works the same as MySQL interpolating.
-func sqliteInterpolate(query string, args ...interface{}) (string, error) {
-	return mysqlLikeInterpolate(SQLite, query, args...)
-}
-
 func encodeValue(buf []byte, arg interface{}, flavor Flavor) ([]byte, error) {
 	switch v := arg.(type) {
 	case nil:
@@ -439,23 +157,9 @@ func encodeValue(buf []byte, arg interface{}, flavor Flavor) ([]byte, error) {
 		}
 
 		switch flavor {
-		case MySQL:
+		case SphinxQL:
 			buf = append(buf, "_binary"...)
 			buf = quoteStringValue(buf, *(*string)(unsafe.Pointer(&v)), flavor)
-
-		case PostgreSQL:
-			buf = append(buf, "E'\\\\x"...)
-			buf = appendHex(buf, v)
-			buf = append(buf, "'::bytea"...)
-
-		case SQLite:
-			buf = append(buf, "X'"...)
-			buf = appendHex(buf, v)
-			buf = append(buf, '\'')
-
-		case SQLServer:
-			buf = append(buf, "0x"...)
-			buf = appendHex(buf, v)
 		}
 
 	case string:
@@ -473,17 +177,8 @@ func encodeValue(buf []byte, arg interface{}, flavor Flavor) ([]byte, error) {
 		buf = append(buf, '\'')
 
 		switch flavor {
-		case MySQL:
+		case SphinxQL:
 			buf = append(buf, v.Format("2006-01-02 15:04:05.999999")...)
-
-		case PostgreSQL:
-			buf = append(buf, v.Format("2006-01-02 15:04:05.999999 MST")...)
-
-		case SQLite:
-			buf = append(buf, v.Format("2006-01-02 15:04:05.000")...)
-
-		case SQLServer:
-			buf = append(buf, v.Format("2006-01-02 15:04:05.999999 Z07:00")...)
 		}
 
 		buf = append(buf, '\'')
@@ -500,22 +195,7 @@ func encodeValue(buf []byte, arg interface{}, flavor Flavor) ([]byte, error) {
 
 var hexDigits = [16]byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
 
-func appendHex(buf, v []byte) []byte {
-	for _, b := range v {
-		buf = append(buf, hexDigits[(b>>4)&0xF], hexDigits[b&0xF])
-	}
-
-	return buf
-}
-
-func quoteStringValue(buf []byte, s string, flavor Flavor) []byte {
-	switch flavor {
-	case PostgreSQL:
-		buf = append(buf, 'E')
-	case SQLServer:
-		buf = append(buf, 'N')
-	}
-
+func quoteStringValue(buf []byte, s string, _ Flavor) []byte {
 	buf = append(buf, '\'')
 	r, sz := utf8.DecodeRuneInString(s)
 

@@ -1,4 +1,4 @@
-module github.com/huandu/go-sqlbuilder
+module github.com/superjobru/go-sphinxql
 
 go 1.17
 
