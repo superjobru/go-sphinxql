@@ -1,7 +1,7 @@
 // Copyright 2018 Huan Du. All rights reserved.
 // Licensed under the MIT license that can be found in the LICENSE file.
 
-package sqlbuilder
+package sphinxql
 
 import (
 	"fmt"
@@ -298,7 +298,7 @@ func ExampleStruct_useStructAsORM() {
 	// Output:
 	// SELECT user.id, user.name, user.status FROM user WHERE id = ?
 	// [1234]
-	// sqlbuilder.User{ID:1234, Name:"huandu", Status:1}
+	// sphinxql.User{ID:1234, Name:"huandu", Status:1}
 }
 
 func ExampleStruct_useTag() {

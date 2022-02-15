@@ -1,4 +1,4 @@
-package sqlbuilder
+package sphinxql
 
 import (
 	"reflect"
