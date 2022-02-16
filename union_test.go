@@ -1,4 +1,5 @@
 // Copyright 2018 Huan Du. All rights reserved.
+// Copyright 2022 OOO SuperJob. All rights reserved.
 // Licensed under the MIT license that can be found in the LICENSE file.
 
 package sphinxql
