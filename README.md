@@ -22,6 +22,6 @@ See tests for usage.
 
 ## Contributing
 
-We are welcome for any pull requests. For major, changes please open an issue first to discuss what you would like to change.
+We are welcome for any pull requests. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
