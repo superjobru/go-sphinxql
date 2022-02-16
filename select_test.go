@@ -45,6 +45,7 @@ func ExampleSelectBuilder() {
 		"modified_at > created_at + "+sb.Var(86400), // It's allowed to write arbitrary SQL.
 	)
 	sb.GroupBy("status").Having(sb.NotIn("status", 4, 5))
+	sb.WithinGroupOrderBy("status").WithinGroupOrderByDesc()
 	sb.OrderBy("modified_at").Asc()
 	sb.Limit(10).Offset(5)
 	sb.Option(
@@ -57,7 +58,7 @@ func ExampleSelectBuilder() {
 	fmt.Println(args)
 
 	// Output:
-	// SELECT id, name, COUNT(*) AS t FROM demo.user WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND id NOT IN (SELECT id FROM banned) AND modified_at > created_at + ? GROUP BY status HAVING status NOT IN (?, ?) ORDER BY modified_at ASC LIMIT 10 OFFSET 5 OPTION comment = kekw, ranker = wordcount
+	// SELECT id, name, COUNT(*) AS t FROM demo.user WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND id NOT IN (SELECT id FROM banned) AND modified_at > created_at + ? GROUP BY status HAVING status NOT IN (?, ?) WITHIN GROUP ORDER BY status DESC ORDER BY modified_at ASC LIMIT 10 OFFSET 5 OPTION comment = kekw, ranker = wordcount
 	// [1234 %Du 1 2 5 86400 4 5]
 }
 

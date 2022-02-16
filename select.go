@@ -16,6 +16,7 @@ const (
 	selectMarkerAfterFrom
 	selectMarkerAfterWhere
 	selectMarkerAfterGroupBy
+	selectMarkerAfterWithinGroupOrderBy
 	selectMarkerAfterOrderBy
 	selectMarkerAfterLimit
 	selectMarkerAfterOption
@@ -44,16 +45,18 @@ type SelectBuilder struct {
 	Cond
 	OptionBuilder
 
-	tables      []string
-	selectCols  []string
-	whereExprs  []string
-	groupByCols []string
-	havingExprs []string
-	orderByCols []string
-	order       string
-	limit       int
-	offset      int
-	options     []Option
+	tables                  []string
+	selectCols              []string
+	whereExprs              []string
+	groupByCols             []string
+	withinGroupOrderByCol   string
+	withinGroupOrderByOrder string
+	havingExprs             []string
+	orderByCols             []string
+	order                   string
+	limit                   int
+	offset                  int
+	options                 []Option
 
 	args *Args
 
@@ -103,6 +106,27 @@ func (sb *SelectBuilder) GroupBy(col ...string) *SelectBuilder {
 	return sb
 }
 
+// WithinGroupOrderBy sets columns of WITHIN GROUP ORDER BY in SELECT.
+func (sb *SelectBuilder) WithinGroupOrderBy(col string) *SelectBuilder {
+	sb.withinGroupOrderByCol = col
+	sb.marker = selectMarkerAfterWithinGroupOrderBy
+	return sb
+}
+
+// WithinGroupOrderByAsc sets order of WITHIN GROUP ORDER BY to ASC.
+func (sb *SelectBuilder) WithinGroupOrderByAsc() *SelectBuilder {
+	sb.withinGroupOrderByOrder = "ASC"
+	sb.marker = selectMarkerAfterWithinGroupOrderBy
+	return sb
+}
+
+// WithinGroupOrderByDesc sets order of WITHIN GROUP ORDER BY to DESC.
+func (sb *SelectBuilder) WithinGroupOrderByDesc() *SelectBuilder {
+	sb.withinGroupOrderByOrder = "DESC"
+	sb.marker = selectMarkerAfterWithinGroupOrderBy
+	return sb
+}
+
 // OrderBy sets columns of ORDER BY in SELECT.
 func (sb *SelectBuilder) OrderBy(col ...string) *SelectBuilder {
 	sb.orderByCols = col
@@ -138,7 +162,7 @@ func (sb *SelectBuilder) Offset(offset int) *SelectBuilder {
 	return sb
 }
 
-// Option sets the OPTION in SELECT
+// Option sets the OPTION in SELECT.
 func (sb *SelectBuilder) Option(option ...Option) *SelectBuilder {
 	sb.options = option
 	sb.marker = selectMarkerAfterOption
@@ -199,6 +223,18 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 		}
 
 		sb.injection.WriteTo(buf, selectMarkerAfterGroupBy)
+	}
+
+	if sb.withinGroupOrderByCol != "" {
+		buf.WriteString(" WITHIN GROUP ORDER BY ")
+		buf.WriteString(sb.withinGroupOrderByCol)
+
+		if sb.withinGroupOrderByOrder != "" {
+			buf.WriteRune(' ')
+			buf.WriteString(sb.withinGroupOrderByOrder)
+		}
+
+		sb.injection.WriteTo(buf, selectMarkerAfterWithinGroupOrderBy)
 	}
 
 	if len(sb.orderByCols) > 0 {
