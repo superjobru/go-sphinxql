@@ -29,7 +29,7 @@ func ExampleSelect() {
 
 func ExampleSelectBuilder() {
 	sb := NewSelectBuilder()
-	sb.Distinct().Select("id", "name", sb.As("COUNT(*)", "t"))
+	sb.Select("id", "name", sb.As("COUNT(*)", "t"))
 	sb.From("demo.user")
 	sb.Where(
 		sb.GreaterThan("id", 1234),
@@ -47,13 +47,17 @@ func ExampleSelectBuilder() {
 	sb.GroupBy("status").Having(sb.NotIn("status", 4, 5))
 	sb.OrderBy("modified_at").Asc()
 	sb.Limit(10).Offset(5)
+	sb.Option(
+		sb.Comment("kekw"),
+		sb.Ranker(RankerWordCount),
+	)
 
 	sql, args := sb.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
 
 	// Output:
-	// SELECT DISTINCT id, name, COUNT(*) AS t FROM demo.user WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND id NOT IN (SELECT id FROM banned) AND modified_at > created_at + ? GROUP BY status HAVING status NOT IN (?, ?) ORDER BY modified_at ASC LIMIT 10 OFFSET 5
+	// SELECT id, name, COUNT(*) AS t FROM demo.user WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND id NOT IN (SELECT id FROM banned) AND modified_at > created_at + ? GROUP BY status HAVING status NOT IN (?, ?) ORDER BY modified_at ASC LIMIT 10 OFFSET 5 OPTION comment = kekw, ranker = wordcount
 	// [1234 %Du 1 2 5 86400 4 5]
 }
 
@@ -86,33 +90,8 @@ func ExampleSelectBuilder_advancedUsage() {
 	// [Huan Du Charmy Liu 1 2 3 {{} start 1234567890} {{} end 1234599999}]
 }
 
-func ExampleSelectBuilder_join() {
-	sb := NewSelectBuilder()
-	sb.Select("u.id", "u.name", "c.type", "p.nickname")
-	sb.From("user u")
-	sb.Join("contract c",
-		"u.id = c.user_id",
-		sb.In("c.status", 1, 2, 5),
-	)
-	sb.JoinWithOption(RightOuterJoin, "person p",
-		"u.id = p.user_id",
-		sb.Like("p.surname", "%Du"),
-	)
-	sb.Where(
-		"u.modified_at > u.created_at + " + sb.Var(86400), // It's allowed to write arbitrary SQL.
-	)
-
-	sql, args := sb.Build()
-	fmt.Println(sql)
-	fmt.Println(args)
-
-	// Output:
-	// SELECT u.id, u.name, c.type, p.nickname FROM user u JOIN contract c ON u.id = c.user_id AND c.status IN (?, ?, ?) RIGHT OUTER JOIN person p ON u.id = p.user_id AND p.surname LIKE ? WHERE u.modified_at > u.created_at + ?
-	// [1 2 5 %Du 86400]
-}
-
 func ExampleSelectBuilder_limit_offset() {
-	flavors := []Flavor{SphinxQL}
+	flavors := []Flavor{SphinxSearch}
 	results := make([][]string, len(flavors))
 	sb := NewSelectBuilder()
 	saveResults := func() {
@@ -134,7 +113,7 @@ func ExampleSelectBuilder_limit_offset() {
 
 	// Case #2: limit < 0 and offset >= 0
 	//
-	// SphinxQL: Ignore offset if the limit is not set.
+	// SphinxSearch: Ignore offset if the limit is not set.
 	sb.Limit(-1)
 	sb.Offset(0)
 	saveResults()
@@ -164,26 +143,11 @@ func ExampleSelectBuilder_limit_offset() {
 
 	// Output:
 	//
-	// SphinxQL
+	// SphinxSearch
 	// #1: SELECT * FROM user
 	// #2: SELECT * FROM user
 	// #3: SELECT * FROM user LIMIT 1 OFFSET 0
 	// #4: SELECT * FROM user LIMIT 1
-}
-
-func ExampleSelectBuilder_ForUpdate() {
-	sb := newSelectBuilder()
-	sb.Select("*").From("user").Where(
-		sb.Equal("id", 1234),
-	).ForUpdate()
-
-	sql, args := sb.Build()
-	fmt.Println(sql)
-	fmt.Println(args)
-
-	// Output:
-	// SELECT * FROM user WHERE id = ? FOR UPDATE
-	// [1234]
 }
 
 func ExampleSelectBuilder_varInCols() {
@@ -211,13 +175,6 @@ func ExampleSelectBuilder_SQL() {
 	sb.SQL("/* after select */")
 	sb.From("user u")
 	sb.SQL("/* after from */")
-	sb.Join("contract c",
-		"u.id = c.user_id",
-	)
-	sb.JoinWithOption(RightOuterJoin, "person p",
-		"u.id = p.user_id",
-	)
-	sb.SQL("/* after join */")
 	sb.Where(
 		"u.modified_at > u.created_at",
 	)
@@ -226,12 +183,10 @@ func ExampleSelectBuilder_SQL() {
 	sb.SQL("/* after order by */")
 	sb.Limit(10)
 	sb.SQL("/* after limit */")
-	sb.ForShare()
-	sb.SQL("/* after for */")
 
 	sql := sb.String()
 	fmt.Println(sql)
 
 	// Output:
-	// /* before */ SELECT u.id, u.name, c.type, p.nickname /* after select */ FROM user u /* after from */ JOIN contract c ON u.id = c.user_id RIGHT OUTER JOIN person p ON u.id = p.user_id /* after join */ WHERE u.modified_at > u.created_at /* after where */ ORDER BY id /* after order by */ LIMIT 10 /* after limit */ FOR SHARE /* after for */
+	// /* before */ SELECT u.id, u.name, c.type, p.nickname /* after select */ FROM user u /* after from */ WHERE u.modified_at > u.created_at /* after where */ ORDER BY id /* after order by */ LIMIT 10 /* after limit */
 }

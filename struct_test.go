@@ -503,15 +503,15 @@ type structWithQuote struct {
 
 func TestStructWithQuote(t *testing.T) {
 	a := assert.New(t)
-	sb := NewStruct(new(structWithQuote)).For(SphinxQL).SelectFrom("foo")
+	sb := NewStruct(new(structWithQuote)).SelectFrom("foo")
 	sql, _ := sb.Build()
 	a.Equal(sql, "SELECT foo.`aa`, foo.ccc FROM foo")
 
-	ub := NewStruct(new(structWithQuote)).For(SphinxQL).Update("foo", structWithQuote{A: "aaa"})
+	ub := NewStruct(new(structWithQuote)).Update("foo", structWithQuote{A: "aaa"})
 	sql, _ = ub.Build()
 	a.Equal(sql, "UPDATE foo SET `aa` = ?, ccc = ?")
 
-	ib := NewStruct(new(structWithQuote)).For(SphinxQL).InsertInto("foo", structWithQuote{A: "aaa"})
+	ib := NewStruct(new(structWithQuote)).InsertInto("foo", structWithQuote{A: "aaa"})
 	sql, _ = ib.Build()
 	a.Equal(sql, "INSERT INTO foo (`aa`, ccc) VALUES (?, ?)")
 }
@@ -526,7 +526,7 @@ type structOmitEmpty struct {
 
 func TestStructOmitEmpty(t *testing.T) {
 	a := assert.New(t)
-	st := NewStruct(new(structOmitEmpty)).For(SphinxQL)
+	st := NewStruct(new(structOmitEmpty))
 	sql1, _ := st.Update("foo", new(structOmitEmpty)).Build()
 
 	a.Equal(sql1, "UPDATE foo SET ee = ?")
@@ -558,7 +558,7 @@ type structOmitEmptyForTag struct {
 
 func TestStructOmitEmptyForTag(t *testing.T) {
 	a := assert.New(t)
-	st := NewStruct(new(structOmitEmptyForTag)).For(SphinxQL)
+	st := NewStruct(new(structOmitEmptyForTag))
 	sql1, _ := st.Update("foo", new(structOmitEmptyForTag)).Build()
 
 	a.Equal(sql1, "UPDATE foo SET D = ?, ee = ?")
@@ -589,7 +589,7 @@ type structOmitEmptyForMultipleTags struct {
 
 func TestStructOmitEmptyForMultipleTags(t *testing.T) {
 	a := assert.New(t)
-	st := NewStruct(new(structOmitEmptyForMultipleTags)).For(SphinxQL)
+	st := NewStruct(new(structOmitEmptyForMultipleTags))
 	sql1, _ := st.Update("foo", new(structOmitEmptyForMultipleTags)).Build()
 
 	a.Equal(sql1, "UPDATE foo SET D = ?, ee = ?")
@@ -636,7 +636,7 @@ type structWithPointers struct {
 
 func TestStructWithPointers(t *testing.T) {
 	a := assert.New(t)
-	st := NewStruct(new(structWithPointers)).For(SphinxQL)
+	st := NewStruct(new(structWithPointers))
 	sql1, _ := st.Update("foo", new(structWithPointers)).Build()
 
 	a.Equal(sql1, "UPDATE foo SET bb = ?")

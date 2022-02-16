@@ -11,14 +11,14 @@ import (
 	"unsafe"
 )
 
-// sphinxqlInterpolate parses query and replace all "?" with encoded args.
+// sphinxSearchInterpolate parses query and replace all "?" with encoded args.
 // If there are more "?" than len(args), returns ErrMissingArgs.
 // Otherwise, if there are less "?" than len(args), the redundant args are omitted.
-func sphinxqlInterpolate(query string, args ...interface{}) (string, error) {
-	return sphinxqlLikeInterpolate(SphinxQL, query, args...)
+func sphinxSearchInterpolate(query string, args ...interface{}) (string, error) {
+	return sphinxSearchLikeInterpolate(SphinxSearch, query, args...)
 }
 
-func sphinxqlLikeInterpolate(flavor Flavor, query string, args ...interface{}) (string, error) {
+func sphinxSearchLikeInterpolate(flavor Flavor, query string, args ...interface{}) (string, error) {
 	// Roughly estimate the size to avoid useless memory allocation and copy.
 	buf := make([]byte, 0, len(query)+len(args)*20)
 
@@ -156,11 +156,8 @@ func encodeValue(buf []byte, arg interface{}, flavor Flavor) ([]byte, error) {
 			break
 		}
 
-		switch flavor {
-		case SphinxQL:
-			buf = append(buf, "_binary"...)
-			buf = quoteStringValue(buf, *(*string)(unsafe.Pointer(&v)), flavor)
-		}
+		buf = append(buf, "_binary"...)
+		buf = quoteStringValue(buf, *(*string)(unsafe.Pointer(&v)), flavor)
 
 	case string:
 		buf = quoteStringValue(buf, v, flavor)
@@ -176,10 +173,7 @@ func encodeValue(buf []byte, arg interface{}, flavor Flavor) ([]byte, error) {
 		v = v.Add(500 * time.Nanosecond)
 		buf = append(buf, '\'')
 
-		switch flavor {
-		case SphinxQL:
-			buf = append(buf, v.Format("2006-01-02 15:04:05.999999")...)
-		}
+		buf = append(buf, v.Format("2006-01-02 15:04:05.999999")...)
 
 		buf = append(buf, '\'')
 

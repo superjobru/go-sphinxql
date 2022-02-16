@@ -12,12 +12,12 @@ import (
 const (
 	invalidFlavor Flavor = iota
 
-	SphinxQL
+	SphinxSearch
 )
 
 var (
 	// DefaultFlavor is the default flavor for all builders.
-	DefaultFlavor = SphinxQL
+	DefaultFlavor = SphinxSearch
 )
 
 var (
@@ -38,8 +38,8 @@ type Flavor int
 // String returns the name of f.
 func (f Flavor) String() string {
 	switch f {
-	case SphinxQL:
-		return "SphinxQL"
+	case SphinxSearch:
+		return "SphinxSearch"
 	}
 
 	return "<invalid>"
@@ -52,8 +52,8 @@ func (f Flavor) String() string {
 // returns ErrMissingArgs error.
 func (f Flavor) Interpolate(sql string, args []interface{}) (string, error) {
 	switch f {
-	case SphinxQL:
-		return sphinxqlInterpolate(sql, args...)
+	case SphinxSearch:
+		return sphinxSearchInterpolate(sql, args...)
 	}
 
 	return "", ErrInterpolateNotImplemented
@@ -104,10 +104,10 @@ func (f Flavor) NewUnionBuilder() *UnionBuilder {
 // Quote adds quote for name to make sure the name can be used safely
 // as table name or field name.
 //
-//     * For SphinxQL, use back quote (`) to quote name;
+//     * For SphinxSearch, use back quote (`) to quote name;
 func (f Flavor) Quote(name string) string {
 	switch f {
-	case SphinxQL:
+	case SphinxSearch:
 		return fmt.Sprintf("`%s`", name)
 	}
 

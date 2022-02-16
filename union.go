@@ -166,14 +166,12 @@ func (ub *UnionBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{}
 
 	}
 
-	if SphinxQL == flavor && ub.limit >= 0 {
+	if ub.limit >= 0 {
 		if ub.offset >= 0 {
 			buf.WriteString(" OFFSET ")
 			buf.WriteString(strconv.Itoa(ub.offset))
 		}
-	}
 
-	if ub.limit >= 0 {
 		ub.injection.WriteTo(buf, unionMarkerAfterLimit)
 	}
 

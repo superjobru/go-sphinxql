@@ -232,12 +232,7 @@ func (args *Args) compileArg(buf *bytes.Buffer, flavor Flavor, values []interfac
 			values = args.compileArg(buf, flavor, values, a.args[i])
 		}
 	default:
-		switch flavor {
-		case SphinxQL:
-			buf.WriteRune('?')
-		default:
-			panic(fmt.Errorf("Args.CompileWithFlavor: invalid flavor %v (%v)", flavor, int(flavor)))
-		}
+		buf.WriteRune('?')
 
 		values = append(values, arg)
 	}

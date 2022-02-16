@@ -14,26 +14,11 @@ const (
 	selectMarkerInit injectionMarker = iota
 	selectMarkerAfterSelect
 	selectMarkerAfterFrom
-	selectMarkerAfterJoin
 	selectMarkerAfterWhere
 	selectMarkerAfterGroupBy
 	selectMarkerAfterOrderBy
 	selectMarkerAfterLimit
-	selectMarkerAfterFor
-)
-
-// JoinOption is the option in JOIN.
-type JoinOption string
-
-// Join options.
-const (
-	FullJoin       JoinOption = "FULL"
-	FullOuterJoin  JoinOption = "FULL OUTER"
-	InnerJoin      JoinOption = "INNER"
-	LeftJoin       JoinOption = "LEFT"
-	LeftOuterJoin  JoinOption = "LEFT OUTER"
-	RightJoin      JoinOption = "RIGHT"
-	RightOuterJoin JoinOption = "RIGHT OUTER"
+	selectMarkerAfterOption
 )
 
 // NewSelectBuilder creates a new SELECT builder.
@@ -57,21 +42,18 @@ func newSelectBuilder() *SelectBuilder {
 // SelectBuilder is a builder to build SELECT.
 type SelectBuilder struct {
 	Cond
+	OptionBuilder
 
-	distinct    bool
 	tables      []string
 	selectCols  []string
-	joinOptions []JoinOption
-	joinTables  []string
-	joinExprs   [][]string
 	whereExprs  []string
-	havingExprs []string
 	groupByCols []string
+	havingExprs []string
 	orderByCols []string
 	order       string
 	limit       int
 	offset      int
-	forWhat     string
+	options     []Option
 
 	args *Args
 
@@ -93,47 +75,10 @@ func (sb *SelectBuilder) Select(col ...string) *SelectBuilder {
 	return sb
 }
 
-// Distinct marks this SELECT as DISTINCT.
-func (sb *SelectBuilder) Distinct() *SelectBuilder {
-	sb.distinct = true
-	sb.marker = selectMarkerAfterSelect
-	return sb
-}
-
 // From sets table names in SELECT.
 func (sb *SelectBuilder) From(table ...string) *SelectBuilder {
 	sb.tables = table
 	sb.marker = selectMarkerAfterFrom
-	return sb
-}
-
-// Join sets expressions of JOIN in SELECT.
-//
-// It builds a JOIN expression like
-//     JOIN table ON onExpr[0] AND onExpr[1] ...
-func (sb *SelectBuilder) Join(table string, onExpr ...string) *SelectBuilder {
-	sb.marker = selectMarkerAfterJoin
-	return sb.JoinWithOption("", table, onExpr...)
-}
-
-// JoinWithOption sets expressions of JOIN with an option.
-//
-// It builds a JOIN expression like
-//     option JOIN table ON onExpr[0] AND onExpr[1] ...
-//
-// Here is a list of supported options.
-//     - FullJoin: FULL JOIN
-//     - FullOuterJoin: FULL OUTER JOIN
-//     - InnerJoin: INNER JOIN
-//     - LeftJoin: LEFT JOIN
-//     - LeftOuterJoin: LEFT OUTER JOIN
-//     - RightJoin: RIGHT JOIN
-//     - RightOuterJoin: RIGHT OUTER JOIN
-func (sb *SelectBuilder) JoinWithOption(option JoinOption, table string, onExpr ...string) *SelectBuilder {
-	sb.joinOptions = append(sb.joinOptions, option)
-	sb.joinTables = append(sb.joinTables, table)
-	sb.joinExprs = append(sb.joinExprs, onExpr)
-	sb.marker = selectMarkerAfterJoin
 	return sb
 }
 
@@ -193,17 +138,10 @@ func (sb *SelectBuilder) Offset(offset int) *SelectBuilder {
 	return sb
 }
 
-// ForUpdate adds FOR UPDATE at the end of SELECT statement.
-func (sb *SelectBuilder) ForUpdate() *SelectBuilder {
-	sb.forWhat = "UPDATE"
-	sb.marker = selectMarkerAfterFor
-	return sb
-}
-
-// ForShare adds FOR SHARE at the end of SELECT statement.
-func (sb *SelectBuilder) ForShare() *SelectBuilder {
-	sb.forWhat = "SHARE"
-	sb.marker = selectMarkerAfterFor
+// Option sets the OPTION in SELECT
+func (sb *SelectBuilder) Option(option ...Option) *SelectBuilder {
+	sb.options = option
+	sb.marker = selectMarkerAfterOption
 	return sb
 }
 
@@ -237,36 +175,12 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 	sb.injection.WriteTo(buf, selectMarkerInit)
 	buf.WriteString("SELECT ")
 
-	if sb.distinct {
-		buf.WriteString("DISTINCT ")
-	}
-
 	buf.WriteString(strings.Join(sb.selectCols, ", "))
 	sb.injection.WriteTo(buf, selectMarkerAfterSelect)
 
 	buf.WriteString(" FROM ")
 	buf.WriteString(strings.Join(sb.tables, ", "))
 	sb.injection.WriteTo(buf, selectMarkerAfterFrom)
-
-	for i := range sb.joinTables {
-		if option := sb.joinOptions[i]; option != "" {
-			buf.WriteRune(' ')
-			buf.WriteString(string(option))
-		}
-
-		buf.WriteString(" JOIN ")
-		buf.WriteString(sb.joinTables[i])
-
-		if exprs := sb.joinExprs[i]; len(exprs) > 0 {
-			buf.WriteString(" ON ")
-			buf.WriteString(strings.Join(sb.joinExprs[i], " AND "))
-		}
-
-	}
-
-	if len(sb.joinTables) > 0 {
-		sb.injection.WriteTo(buf, selectMarkerAfterJoin)
-	}
 
 	if len(sb.whereExprs) > 0 {
 		buf.WriteString(" WHERE ")
@@ -299,28 +213,23 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 		sb.injection.WriteTo(buf, selectMarkerAfterOrderBy)
 	}
 
-	switch flavor {
-	case SphinxQL:
-		if sb.limit >= 0 {
-			buf.WriteString(" LIMIT ")
-			buf.WriteString(strconv.Itoa(sb.limit))
-
-			if sb.offset >= 0 {
-				buf.WriteString(" OFFSET ")
-				buf.WriteString(strconv.Itoa(sb.offset))
-			}
-		}
-	}
-
 	if sb.limit >= 0 {
+		buf.WriteString(" LIMIT ")
+		buf.WriteString(strconv.Itoa(sb.limit))
+
+		if sb.offset >= 0 {
+			buf.WriteString(" OFFSET ")
+			buf.WriteString(strconv.Itoa(sb.offset))
+		}
+
 		sb.injection.WriteTo(buf, selectMarkerAfterLimit)
 	}
 
-	if sb.forWhat != "" {
-		buf.WriteString(" FOR ")
-		buf.WriteString(sb.forWhat)
+	if len(sb.options) > 0 {
+		buf.WriteString(" OPTION ")
+		buf.WriteString(SerializeOptions(sb.options))
 
-		sb.injection.WriteTo(buf, selectMarkerAfterFor)
+		sb.injection.WriteTo(buf, selectMarkerAfterOption)
 	}
 
 	return sb.args.CompileWithFlavor(buf.String(), flavor, initialArg...)
