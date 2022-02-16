@@ -43,14 +43,13 @@ func ExampleUpdateBuilder() {
 		),
 		"modified_at > created_at + "+ub.Var(86400), // It's allowed to write arbitrary SQL.
 	)
-	ub.OrderBy("id").Asc()
 
 	sql, args := ub.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
 
 	// Output:
-	// UPDATE demo.user SET type = ?, credit = credit + 1, modified_at = UNIX_TIMESTAMP(NOW()) WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND modified_at > created_at + ? ORDER BY id ASC
+	// UPDATE demo.user SET type = ?, credit = credit + 1, modified_at = UNIX_TIMESTAMP(NOW()) WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND modified_at > created_at + ?
 	// [sys 1234 %Du 1 2 5 86400]
 }
 
@@ -105,14 +104,10 @@ func ExampleUpdateBuilder_SQL() {
 		ub.Assign("type", "sys"),
 	)
 	ub.SQL("/* after set */")
-	ub.OrderBy("id").Desc()
-	ub.SQL("/* after order by */")
-	ub.Limit(10)
-	ub.SQL("/* after limit */")
 
 	sql := ub.String()
 	fmt.Println(sql)
 
 	// Output:
-	// /* before */ UPDATE demo.user /* after update */ SET type = ? /* after set */ ORDER BY id DESC /* after order by */ LIMIT 10 /* after limit */
+	// /* before */ UPDATE demo.user /* after update */ SET type = ? /* after set */
 }

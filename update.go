@@ -6,7 +6,6 @@ package sphinxql
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -15,8 +14,7 @@ const (
 	updateMarkerAfterUpdate
 	updateMarkerAfterSet
 	updateMarkerAfterWhere
-	updateMarkerAfterOrderBy
-	updateMarkerAfterLimit
+	updateMarkerAfterOption
 )
 
 // NewUpdateBuilder creates a new UPDATE builder.
@@ -30,7 +28,6 @@ func newUpdateBuilder() *UpdateBuilder {
 		Cond: Cond{
 			Args: args,
 		},
-		limit:     -1,
 		args:      args,
 		injection: newInjection(),
 	}
@@ -39,13 +36,13 @@ func newUpdateBuilder() *UpdateBuilder {
 // UpdateBuilder is a builder to build UPDATE.
 type UpdateBuilder struct {
 	Cond
+	OptionBuilder
 
 	table       string
 	assignments []string
 	whereExprs  []string
 	orderByCols []string
-	order       string
-	limit       int
+	options     []Option
 
 	args *Args
 
@@ -85,6 +82,13 @@ func (ub *UpdateBuilder) SetMore(assignment ...string) *UpdateBuilder {
 func (ub *UpdateBuilder) Where(andExpr ...string) *UpdateBuilder {
 	ub.whereExprs = append(ub.whereExprs, andExpr...)
 	ub.marker = updateMarkerAfterWhere
+	return ub
+}
+
+// Option sets the OPTION in UPDATE.
+func (ub *UpdateBuilder) Option(option ...Option) *UpdateBuilder {
+	ub.options = option
+	ub.marker = updateMarkerAfterOption
 	return ub
 }
 
@@ -129,34 +133,6 @@ func (ub *UpdateBuilder) Div(field string, value interface{}) string {
 	return fmt.Sprintf("%s = %s / %s", f, f, ub.args.Add(value))
 }
 
-// OrderBy sets columns of ORDER BY in UPDATE.
-func (ub *UpdateBuilder) OrderBy(col ...string) *UpdateBuilder {
-	ub.orderByCols = col
-	ub.marker = updateMarkerAfterOrderBy
-	return ub
-}
-
-// Asc sets order of ORDER BY to ASC.
-func (ub *UpdateBuilder) Asc() *UpdateBuilder {
-	ub.order = "ASC"
-	ub.marker = updateMarkerAfterOrderBy
-	return ub
-}
-
-// Desc sets order of ORDER BY to DESC.
-func (ub *UpdateBuilder) Desc() *UpdateBuilder {
-	ub.order = "DESC"
-	ub.marker = updateMarkerAfterOrderBy
-	return ub
-}
-
-// Limit sets the LIMIT in UPDATE.
-func (ub *UpdateBuilder) Limit(limit int) *UpdateBuilder {
-	ub.limit = limit
-	ub.marker = updateMarkerAfterLimit
-	return ub
-}
-
 // String returns the compiled UPDATE string.
 func (ub *UpdateBuilder) String() string {
 	s, _ := ub.Build()
@@ -188,23 +164,11 @@ func (ub *UpdateBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 		ub.injection.WriteTo(buf, updateMarkerAfterWhere)
 	}
 
-	if len(ub.orderByCols) > 0 {
-		buf.WriteString(" ORDER BY ")
-		buf.WriteString(strings.Join(ub.orderByCols, ", "))
+	if len(ub.options) > 0 {
+		buf.WriteString(" OPTION ")
+		buf.WriteString(SerializeOptions(ub.options))
 
-		if ub.order != "" {
-			buf.WriteRune(' ')
-			buf.WriteString(ub.order)
-		}
-
-		ub.injection.WriteTo(buf, updateMarkerAfterOrderBy)
-	}
-
-	if ub.limit >= 0 {
-		buf.WriteString(" LIMIT ")
-		buf.WriteString(strconv.Itoa(ub.limit))
-
-		ub.injection.WriteTo(buf, updateMarkerAfterLimit)
+		ub.injection.WriteTo(buf, updateMarkerAfterOption)
 	}
 
 	return ub.args.CompileWithFlavor(buf.String(), flavor, initialArg...)
