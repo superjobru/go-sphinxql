@@ -1,4 +1,4 @@
-# SphinxQL Builder
+# SphinxQL Query Builder
 
 ![Go](https://img.shields.io/github/go-mod/go-version/superjobru/go-sphinxql?style=for-the-badge) ![License](https://img.shields.io/github/license/superjobru/go-sphinxql?style=for-the-badge) ![Issues](https://img.shields.io/github/issues/superjobru/go-sphinxql?style=for-the-badge)
 
