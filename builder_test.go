@@ -14,8 +14,8 @@ func ExampleBuildf() {
 	sb.Select("id").From("user")
 
 	explain := Buildf("EXPLAIN %v LEFT JOIN SELECT * FROM banned WHERE state IN (%v, %v)", sb, 1, 2)
-	sql, args := explain.Build()
-	fmt.Println(sql)
+	s, args := explain.Build()
+	fmt.Println(s)
 	fmt.Println(args)
 
 	// Output:
@@ -29,9 +29,9 @@ func ExampleBuild() {
 
 	b := Build("EXPLAIN $? LEFT JOIN SELECT * FROM $? WHERE created_at > $? AND state IN (${states}) AND modified_at BETWEEN $2 AND $?",
 		sb, Raw("banned"), 1514458225, 1514544625, Named("states", List([]int{3, 4, 5})))
-	sql, args := b.Build()
+	s, args := b.Build()
 
-	fmt.Println(sql)
+	fmt.Println(s)
 	fmt.Println(args)
 
 	// Output:
@@ -47,9 +47,9 @@ func ExampleBuildNamed() {
 			"name":   "Huan%",
 			"table":  Raw("user"),
 		})
-	sql, args := b.Build()
+	s, args := b.Build()
 
-	fmt.Println(sql)
+	fmt.Println(s)
 	fmt.Println(args)
 
 	// Output:

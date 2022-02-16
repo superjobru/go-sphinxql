@@ -188,8 +188,6 @@ func encodeValue(buf []byte, arg interface{}, flavor Flavor) ([]byte, error) {
 	return buf, nil
 }
 
-var hexDigits = [16]byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
-
 func quoteStringValue(buf []byte, s string, _ Flavor) []byte {
 	buf = append(buf, '\'')
 	r, sz := utf8.DecodeRuneInString(s)

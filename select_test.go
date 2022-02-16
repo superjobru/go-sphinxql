@@ -11,7 +11,7 @@ import (
 
 func ExampleSelect() {
 	// Build a SQL to create a HIVE table.
-	sql := CreateTable("users").
+	s := CreateTable("users").
 		SQL("PARTITION BY (year)").
 		SQL("AS").
 		SQL(
@@ -22,7 +22,7 @@ func ExampleSelect() {
 		).
 		String()
 
-	fmt.Println(sql)
+	fmt.Println(s)
 
 	// Output:
 	// CREATE TABLE users PARTITION BY (year) AS SELECT columns[0] id, columns[1] name, columns[2] year FROM `all-users.csv` LIMIT 100
@@ -54,8 +54,8 @@ func ExampleSelectBuilder() {
 		sb.Ranker(RankerWordCount),
 	)
 
-	sql, args := sb.Build()
-	fmt.Println(sql)
+	s, args := sb.Build()
+	fmt.Println(s)
 	fmt.Println(args)
 
 	// Output:
@@ -83,8 +83,8 @@ func ExampleSelectBuilder_advancedUsage() {
 		innerSb.NotIn("name", Flatten([]string{"Huan Du", "Charmy Liu"})...),
 	)
 
-	sql, args := sb.Build()
-	fmt.Println(sql)
+	s, args := sb.Build()
+	fmt.Println(s)
 	fmt.Println(args)
 
 	// Output:
@@ -98,8 +98,8 @@ func ExampleSelectBuilder_limit_offset() {
 	sb := NewSelectBuilder()
 	saveResults := func() {
 		for i, f := range flavors {
-			sql, _ := sb.BuildWithFlavor(f)
-			results[i] = append(results[i], sql)
+			s, _ := sb.BuildWithFlavor(f)
+			results[i] = append(results[i], s)
 		}
 	}
 
@@ -138,8 +138,8 @@ func ExampleSelectBuilder_limit_offset() {
 		fmt.Println()
 		fmt.Println(flavors[i])
 
-		for n, sql := range result {
-			fmt.Printf("#%d: %s\n", n+1, sql)
+		for n, s := range result {
+			fmt.Printf("#%d: %s\n", n+1, s)
 		}
 	}
 
@@ -161,8 +161,8 @@ func ExampleSelectBuilder_varInCols() {
 	sb.Select(Escape("colHasA$Sign"), v)
 	sb.From("table")
 
-	sql, args := sb.Build()
-	fmt.Println(sql)
+	s, args := sb.Build()
+	fmt.Println(s)
 	fmt.Println(args)
 
 	// Output:
@@ -186,8 +186,8 @@ func ExampleSelectBuilder_SQL() {
 	sb.Limit(10)
 	sb.SQL("/* after limit */")
 
-	sql := sb.String()
-	fmt.Println(sql)
+	s := sb.String()
+	fmt.Println(s)
 
 	// Output:
 	// /* before */ SELECT u.id, u.name, c.type, p.nickname /* after select */ FROM user u /* after from */ WHERE u.modified_at > u.created_at /* after where */ ORDER BY id /* after order by */ LIMIT 10 /* after limit */
