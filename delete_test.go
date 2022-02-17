@@ -13,13 +13,12 @@ func ExampleDeleteFrom() {
 		Where(
 			"status = 1",
 		).
-		Limit(10).
 		String()
 
 	fmt.Println(sql)
 
 	// Output:
-	// DELETE FROM demo.user WHERE status = 1 LIMIT 10
+	// DELETE FROM demo.user WHERE status = 1
 }
 
 func ExampleDeleteBuilder() {
@@ -53,16 +52,12 @@ func ExampleDeleteBuilder_SQL() {
 		db.GreaterThan("id", 1234),
 	)
 	db.SQL("/* after where */")
-	db.OrderBy("id")
-	db.SQL("/* after order by */")
-	db.Limit(10)
-	db.SQL("/* after limit */")
 
 	sql, args := db.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
 
 	// Output:
-	// /* before */ DELETE FROM demo.user PARTITION (p0) WHERE id > ? /* after where */ ORDER BY id /* after order by */ LIMIT 10 /* after limit */
+	// /* before */ DELETE FROM demo.user PARTITION (p0) WHERE id > ? /* after where */
 	// [1234]
 }

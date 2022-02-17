@@ -60,13 +60,6 @@ func (f Flavor) Interpolate(sql string, args []interface{}) (string, error) {
 	return "", ErrInterpolateNotImplemented
 }
 
-// NewCreateTableBuilder creates a new CREATE TABLE builder with flavor.
-func (f Flavor) NewCreateTableBuilder() *CreateTableBuilder {
-	b := newCreateTableBuilder()
-	b.SetFlavor(f)
-	return b
-}
-
 // NewDeleteBuilder creates a new DELETE builder with flavor.
 func (f Flavor) NewDeleteBuilder() *DeleteBuilder {
 	b := newDeleteBuilder()
@@ -91,13 +84,6 @@ func (f Flavor) NewSelectBuilder() *SelectBuilder {
 // NewUpdateBuilder creates a new UPDATE builder with flavor.
 func (f Flavor) NewUpdateBuilder() *UpdateBuilder {
 	b := newUpdateBuilder()
-	b.SetFlavor(f)
-	return b
-}
-
-// NewUnionBuilder creates a new UNION builder with flavor.
-func (f Flavor) NewUnionBuilder() *UnionBuilder {
-	b := newUnionBuilder()
 	b.SetFlavor(f)
 	return b
 }

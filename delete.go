@@ -6,7 +6,6 @@ package sphinxql
 
 import (
 	"bytes"
-	"strconv"
 	"strings"
 )
 
@@ -14,8 +13,6 @@ const (
 	deleteMarkerInit injectionMarker = iota
 	deleteMarkerAfterDeleteFrom
 	deleteMarkerAfterWhere
-	deleteMarkerAfterOrderBy
-	deleteMarkerAfterLimit
 )
 
 // NewDeleteBuilder creates a new DELETE builder.
@@ -29,7 +26,6 @@ func newDeleteBuilder() *DeleteBuilder {
 		Cond: Cond{
 			Args: args,
 		},
-		limit:     -1,
 		args:      args,
 		injection: newInjection(),
 	}
@@ -39,11 +35,8 @@ func newDeleteBuilder() *DeleteBuilder {
 type DeleteBuilder struct {
 	Cond
 
-	table       string
-	whereExprs  []string
-	orderByCols []string
-	order       string
-	limit       int
+	table      string
+	whereExprs []string
 
 	args *Args
 
@@ -69,34 +62,6 @@ func (db *DeleteBuilder) DeleteFrom(table string) *DeleteBuilder {
 func (db *DeleteBuilder) Where(andExpr ...string) *DeleteBuilder {
 	db.whereExprs = append(db.whereExprs, andExpr...)
 	db.marker = deleteMarkerAfterWhere
-	return db
-}
-
-// OrderBy sets columns of ORDER BY in DELETE.
-func (db *DeleteBuilder) OrderBy(col ...string) *DeleteBuilder {
-	db.orderByCols = col
-	db.marker = deleteMarkerAfterOrderBy
-	return db
-}
-
-// Asc sets order of ORDER BY to ASC.
-func (db *DeleteBuilder) Asc() *DeleteBuilder {
-	db.order = "ASC"
-	db.marker = deleteMarkerAfterOrderBy
-	return db
-}
-
-// Desc sets order of ORDER BY to DESC.
-func (db *DeleteBuilder) Desc() *DeleteBuilder {
-	db.order = "DESC"
-	db.marker = deleteMarkerAfterOrderBy
-	return db
-}
-
-// Limit sets the LIMIT in DELETE.
-func (db *DeleteBuilder) Limit(limit int) *DeleteBuilder {
-	db.limit = limit
-	db.marker = deleteMarkerAfterLimit
 	return db
 }
 
@@ -126,25 +91,6 @@ func (db *DeleteBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 		buf.WriteString(strings.Join(db.whereExprs, " AND "))
 
 		db.injection.WriteTo(buf, deleteMarkerAfterWhere)
-	}
-
-	if len(db.orderByCols) > 0 {
-		buf.WriteString(" ORDER BY ")
-		buf.WriteString(strings.Join(db.orderByCols, ", "))
-
-		if db.order != "" {
-			buf.WriteRune(' ')
-			buf.WriteString(db.order)
-		}
-
-		db.injection.WriteTo(buf, deleteMarkerAfterOrderBy)
-	}
-
-	if db.limit >= 0 {
-		buf.WriteString(" LIMIT ")
-		buf.WriteString(strconv.Itoa(db.limit))
-
-		db.injection.WriteTo(buf, deleteMarkerAfterLimit)
 	}
 
 	return db.args.CompileWithFlavor(buf.String(), flavor, initialArg...)

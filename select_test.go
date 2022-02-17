@@ -11,21 +11,15 @@ import (
 
 func ExampleSelect() {
 	// Build a SQL to create a HIVE table.
-	s := CreateTable("users").
-		SQL("PARTITION BY (year)").
-		SQL("AS").
-		SQL(
-			Select("columns[0] id", "columns[1] name", "columns[2] year").
-				From("`all-users.csv`").
-				Limit(100).
-				String(),
-		).
+	s := Select("columns[0] id", "columns[1] name", "columns[2] year").
+		From("`all-users.csv`").
+		Limit(100).
 		String()
 
 	fmt.Println(s)
 
 	// Output:
-	// CREATE TABLE users PARTITION BY (year) AS SELECT columns[0] id, columns[1] name, columns[2] year FROM `all-users.csv` LIMIT 100
+	// SELECT columns[0] id, columns[1] name, columns[2] year FROM `all-users.csv` LIMIT 100
 }
 
 func ExampleSelectBuilder() {
