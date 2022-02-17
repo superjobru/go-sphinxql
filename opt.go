@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// Opt provides several helper methods to build options.
 type Opt struct {
 	Args *Args
 }
