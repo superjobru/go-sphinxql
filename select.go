@@ -34,6 +34,9 @@ func newSelectBuilder() *SelectBuilder {
 		Cond: Cond{
 			Args: args,
 		},
+		Opt: Opt{
+			Args: args,
+		},
 		limit:     -1,
 		offset:    -1,
 		args:      args,
@@ -44,7 +47,7 @@ func newSelectBuilder() *SelectBuilder {
 // SelectBuilder is a builder to build SELECT.
 type SelectBuilder struct {
 	Cond
-	OptionBuilder
+	Opt
 
 	tables                  []string
 	selectCols              []string
@@ -57,7 +60,7 @@ type SelectBuilder struct {
 	order                   string
 	limit                   int
 	offset                  int
-	options                 []Option
+	optionExprs             []string
 
 	args *Args
 
@@ -163,9 +166,9 @@ func (sb *SelectBuilder) Offset(offset int) *SelectBuilder {
 	return sb
 }
 
-// Option sets the OPTION in SELECT.
-func (sb *SelectBuilder) Option(option ...Option) *SelectBuilder {
-	sb.options = option
+// Option sets expressions of OPTION in SELECT.
+func (sb *SelectBuilder) Option(optionExpr ...string) *SelectBuilder {
+	sb.optionExprs = optionExpr
 	sb.marker = selectMarkerAfterOption
 	return sb
 }
@@ -262,9 +265,9 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 		sb.injection.WriteTo(buf, selectMarkerAfterLimit)
 	}
 
-	if len(sb.options) > 0 {
+	if len(sb.optionExprs) > 0 {
 		buf.WriteString(" OPTION ")
-		buf.WriteString(SerializeOptions(sb.options))
+		buf.WriteString(strings.Join(sb.optionExprs, ", "))
 
 		sb.injection.WriteTo(buf, selectMarkerAfterOption)
 	}

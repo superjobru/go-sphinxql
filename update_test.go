@@ -44,14 +44,17 @@ func ExampleUpdateBuilder() {
 		),
 		"modified_at > created_at + "+ub.Var(86400), // It's allowed to write arbitrary SQL.
 	)
+	ub.Option(
+		ub.Comment("kekw"),
+	)
 
 	sql, args := ub.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
 
 	// Output:
-	// UPDATE demo.user SET type = ?, credit = credit + 1, modified_at = UNIX_TIMESTAMP(NOW()) WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND modified_at > created_at + ?
-	// [sys 1234 %Du 1 2 5 86400]
+	// UPDATE demo.user SET type = ?, credit = credit + 1, modified_at = UNIX_TIMESTAMP(NOW()) WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND modified_at > created_at + ? OPTION comment = '?'
+	// [sys 1234 %Du 1 2 5 86400 kekw]
 }
 
 func TestUpdateAssignments(t *testing.T) {

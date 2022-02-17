@@ -29,6 +29,9 @@ func newUpdateBuilder() *UpdateBuilder {
 		Cond: Cond{
 			Args: args,
 		},
+		Opt: Opt{
+			Args: args,
+		},
 		args:      args,
 		injection: newInjection(),
 	}
@@ -37,13 +40,13 @@ func newUpdateBuilder() *UpdateBuilder {
 // UpdateBuilder is a builder to build UPDATE.
 type UpdateBuilder struct {
 	Cond
-	OptionBuilder
+	Opt
 
 	table       string
 	assignments []string
 	whereExprs  []string
 	orderByCols []string
-	options     []Option
+	optionExprs []string
 
 	args *Args
 
@@ -86,9 +89,9 @@ func (ub *UpdateBuilder) Where(andExpr ...string) *UpdateBuilder {
 	return ub
 }
 
-// Option sets the OPTION in UPDATE.
-func (ub *UpdateBuilder) Option(option ...Option) *UpdateBuilder {
-	ub.options = option
+// Option sets expressions of OPTION in UPDATE.
+func (ub *UpdateBuilder) Option(optionExpr ...string) *UpdateBuilder {
+	ub.optionExprs = optionExpr
 	ub.marker = updateMarkerAfterOption
 	return ub
 }
@@ -165,10 +168,9 @@ func (ub *UpdateBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 		ub.injection.WriteTo(buf, updateMarkerAfterWhere)
 	}
 
-	if len(ub.options) > 0 {
+	if len(ub.optionExprs) > 0 {
 		buf.WriteString(" OPTION ")
-		buf.WriteString(SerializeOptions(ub.options))
-
+		buf.WriteString(strings.Join(ub.optionExprs, ", "))
 		ub.injection.WriteTo(buf, updateMarkerAfterOption)
 	}
 
