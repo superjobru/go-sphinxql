@@ -12,6 +12,7 @@ import (
 	"unsafe"
 )
 
+// UnquotedString is a string which will be passed as-is during interpolation.
 type UnquotedString string
 
 // sphinxSearchInterpolate parses query and replace all "?" with encoded args.

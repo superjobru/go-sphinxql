@@ -15,10 +15,13 @@ type Opt struct {
 	Args *Args
 }
 
+// NamedIntegerList represents named integer list for options.
 type NamedIntegerList map[string]int
 
+// RankerOptionValue is an alias of UnquotedString.
 type RankerOptionValue = UnquotedString
 
+// RankerOptionValue enum
 const (
 	RankerProximityBM25 RankerOptionValue = "proximity_bm25"
 	RankerBM25                            = "bm25"
@@ -32,10 +35,12 @@ const (
 	RankerExport                          = "export"
 )
 
+// Comment builds a comment OPTION.
 func (o *Opt) Comment(value string) string {
 	return fmt.Sprintf("comment = %s", o.Args.Add(value))
 }
 
+// FieldWeights builds a field_weights OPTION.
 func (o *Opt) FieldWeights(values NamedIntegerList) string {
 	buf := &bytes.Buffer{}
 
@@ -63,10 +68,12 @@ func (o *Opt) FieldWeights(values NamedIntegerList) string {
 	return fmt.Sprintf("field_weights = %s", o.Args.Add(buf.String()))
 }
 
+// MaxMatches builds a max_matches OPTION.
 func (o *Opt) MaxMatches(value int) string {
 	return fmt.Sprintf("max_matches = %s", o.Args.Add(value))
 }
 
+// Ranker builds a ranker OPTION.
 func (o *Opt) Ranker(value RankerOptionValue) string {
 	return fmt.Sprintf("ranker = %s", o.Args.Add(value))
 }
@@ -75,10 +82,12 @@ func (o *Opt) exprRanker(value RankerOptionValue, expr string) string {
 	return fmt.Sprintf("ranker = %s(%s)", value, o.Args.Add(expr))
 }
 
+// ExprRanker builds a ranker = expr(expr) OPTION.
 func (o *Opt) ExprRanker(expr string) string {
 	return o.exprRanker(RankerExpr, expr)
 }
 
+// ExportRanker builds a ranker = export(expr) OPTION.
 func (o *Opt) ExportRanker(expr string) string {
 	return o.exprRanker(RankerExport, expr)
 }
