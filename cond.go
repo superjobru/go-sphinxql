@@ -136,6 +136,11 @@ func (c *Cond) And(andExpr ...string) string {
 	return fmt.Sprintf("(%s)", strings.Join(andExpr, " AND "))
 }
 
+// Match represents "MATCH('value')".
+func (c *Cond) Match(value string) string {
+	return fmt.Sprintf("MATCH(%s)", c.Args.Add(value))
+}
+
 // Var returns a placeholder for value.
 func (c *Cond) Var(value interface{}) string {
 	return c.Args.Add(value)
