@@ -53,7 +53,7 @@ func ExampleUpdateBuilder() {
 	fmt.Println(args)
 
 	// Output:
-	// UPDATE demo.user SET type = ?, credit = credit + 1, modified_at = UNIX_TIMESTAMP(NOW()) WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND modified_at > created_at + ? OPTION comment = '?'
+	// UPDATE demo.user SET type = ?, credit = credit + 1, modified_at = UNIX_TIMESTAMP(NOW()) WHERE id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND modified_at > created_at + ? OPTION comment = ?
 	// [sys 1234 %Du 1 2 5 86400 kekw]
 }
 
