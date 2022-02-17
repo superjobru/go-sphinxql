@@ -13,7 +13,7 @@ import (
 func TestOption(t *testing.T) {
 	a := assert.New(t)
 	cases := map[string]func() string{
-		"comment = '$0'": func() string { return newTestOption().Comment("kekw") },
+		"comment = $0": func() string { return newTestOption().Comment("kekw") },
 		"field_weights = $0": func() string {
 			return newTestOption().FieldWeights(NamedIntegerList{
 				"first_field":  10,

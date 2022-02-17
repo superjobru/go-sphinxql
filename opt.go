@@ -33,7 +33,7 @@ const (
 )
 
 func (o *Opt) Comment(value string) string {
-	return fmt.Sprintf("comment = '%s'", o.Args.Add(value))
+	return fmt.Sprintf("comment = %s", o.Args.Add(value))
 }
 
 func (o *Opt) FieldWeights(values NamedIntegerList) string {
