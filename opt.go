@@ -17,7 +17,7 @@ type Opt struct {
 
 type NamedIntegerList map[string]int
 
-type RankerOptionValue string
+type RankerOptionValue = UnquotedString
 
 const (
 	RankerProximityBM25 RankerOptionValue = "proximity_bm25"
@@ -69,4 +69,16 @@ func (o *Opt) MaxMatches(value int) string {
 
 func (o *Opt) Ranker(value RankerOptionValue) string {
 	return fmt.Sprintf("ranker = %s", o.Args.Add(value))
+}
+
+func (o *Opt) exprRanker(value RankerOptionValue, expr string) string {
+	return fmt.Sprintf("ranker = %s(%s)", value, o.Args.Add(expr))
+}
+
+func (o *Opt) ExprRanker(expr string) string {
+	return o.exprRanker(RankerExpr, expr)
+}
+
+func (o *Opt) ExportRanker(expr string) string {
+	return o.exprRanker(RankerExport, expr)
 }

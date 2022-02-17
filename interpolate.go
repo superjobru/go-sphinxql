@@ -12,6 +12,8 @@ import (
 	"unsafe"
 )
 
+type UnquotedString string
+
 // sphinxSearchInterpolate parses query and replace all "?" with encoded args.
 // If there are more "?" than len(args), returns ErrMissingArgs.
 // Otherwise, if there are less "?" than len(args), the redundant args are omitted.
@@ -162,6 +164,9 @@ func encodeValue(buf []byte, arg interface{}, flavor Flavor) ([]byte, error) {
 
 	case string:
 		buf = quoteStringValue(buf, v, flavor)
+
+	case UnquotedString:
+		buf = append(buf, string(v)...)
 
 	case time.Time:
 		if v.IsZero() {
