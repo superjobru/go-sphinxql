@@ -46,6 +46,7 @@ func newSelectBuilder() *SelectBuilder {
 // SelectBuilder is a builder to build SELECT.
 type SelectBuilder struct {
 	Cond
+	OrdBy
 	Opt
 
 	tables                  []string
@@ -55,8 +56,7 @@ type SelectBuilder struct {
 	withinGroupOrderByCol   string
 	withinGroupOrderByOrder string
 	havingExprs             []string
-	orderByCols             []string
-	order                   string
+	orderByExprs            []string
 	limit                   int
 	offset                  int
 	optionExprs             []string
@@ -130,23 +130,9 @@ func (sb *SelectBuilder) WithinGroupOrderByDesc() *SelectBuilder {
 	return sb
 }
 
-// OrderBy sets columns of ORDER BY in SELECT.
-func (sb *SelectBuilder) OrderBy(col ...string) *SelectBuilder {
-	sb.orderByCols = col
-	sb.marker = selectMarkerAfterOrderBy
-	return sb
-}
-
-// Asc sets order of ORDER BY to ASC.
-func (sb *SelectBuilder) Asc() *SelectBuilder {
-	sb.order = "ASC"
-	sb.marker = selectMarkerAfterOrderBy
-	return sb
-}
-
-// Desc sets order of ORDER BY to DESC.
-func (sb *SelectBuilder) Desc() *SelectBuilder {
-	sb.order = "DESC"
+// OrderBy sets expressions of ORDER BY in SELECT.
+func (sb *SelectBuilder) OrderBy(orderByExpr ...string) *SelectBuilder {
+	sb.orderByExprs = orderByExpr
 	sb.marker = selectMarkerAfterOrderBy
 	return sb
 }
@@ -240,14 +226,9 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 		sb.injection.WriteTo(buf, selectMarkerAfterWithinGroupOrderBy)
 	}
 
-	if len(sb.orderByCols) > 0 {
+	if len(sb.orderByExprs) > 0 {
 		buf.WriteString(" ORDER BY ")
-		buf.WriteString(strings.Join(sb.orderByCols, ", "))
-
-		if sb.order != "" {
-			buf.WriteRune(' ')
-			buf.WriteString(sb.order)
-		}
+		buf.WriteString(strings.Join(sb.orderByExprs, ", "))
 
 		sb.injection.WriteTo(buf, selectMarkerAfterOrderBy)
 	}

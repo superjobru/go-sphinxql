@@ -42,7 +42,9 @@ func ExampleSelectBuilder() {
 	)
 	sb.GroupBy("status").Having(sb.NotIn("status", 4, 5))
 	sb.WithinGroupOrderBy("status").WithinGroupOrderByDesc()
-	sb.OrderBy("modified_at").Asc()
+	sb.OrderBy(
+		sb.Asc("modified_at"),
+	)
 	sb.Limit(10).Offset(5)
 	sb.Option(
 		sb.Comment("kekw"),
@@ -70,7 +72,9 @@ func ExampleSelectBuilder_advancedUsage() {
 		sb.In("status", Flatten([]int{1, 2, 3})...),
 		sb.Between("created_at", sql.Named("start", 1234567890), sql.Named("end", 1234599999)),
 	)
-	sb.OrderBy("modified_at").Desc()
+	sb.OrderBy(
+		sb.Desc("modified_at"),
+	)
 
 	innerSb.Select("*")
 	innerSb.From("banned")
