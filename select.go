@@ -53,8 +53,7 @@ type SelectBuilder struct {
 	selectCols              []string
 	whereExprs              []string
 	groupByCols             []string
-	withinGroupOrderByCol   string
-	withinGroupOrderByOrder string
+	withinGroupOrderByExprs []string
 	havingExprs             []string
 	orderByExprs            []string
 	limit                   int
@@ -109,23 +108,9 @@ func (sb *SelectBuilder) GroupBy(col ...string) *SelectBuilder {
 	return sb
 }
 
-// WithinGroupOrderBy sets columns of WITHIN GROUP ORDER BY in SELECT.
-func (sb *SelectBuilder) WithinGroupOrderBy(col string) *SelectBuilder {
-	sb.withinGroupOrderByCol = col
-	sb.marker = selectMarkerAfterWithinGroupOrderBy
-	return sb
-}
-
-// WithinGroupOrderByAsc sets order of WITHIN GROUP ORDER BY to ASC.
-func (sb *SelectBuilder) WithinGroupOrderByAsc() *SelectBuilder {
-	sb.withinGroupOrderByOrder = "ASC"
-	sb.marker = selectMarkerAfterWithinGroupOrderBy
-	return sb
-}
-
-// WithinGroupOrderByDesc sets order of WITHIN GROUP ORDER BY to DESC.
-func (sb *SelectBuilder) WithinGroupOrderByDesc() *SelectBuilder {
-	sb.withinGroupOrderByOrder = "DESC"
+// WithinGroupOrderBy sets expressions of WITHIN GROUP ORDER BY in SELECT.
+func (sb *SelectBuilder) WithinGroupOrderBy(withinGroupOrderByExpr ...string) *SelectBuilder {
+	sb.withinGroupOrderByExprs = withinGroupOrderByExpr
 	sb.marker = selectMarkerAfterWithinGroupOrderBy
 	return sb
 }
@@ -214,14 +199,9 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 		sb.injection.WriteTo(buf, selectMarkerAfterGroupBy)
 	}
 
-	if sb.withinGroupOrderByCol != "" {
+	if len(sb.withinGroupOrderByExprs) > 0 {
 		buf.WriteString(" WITHIN GROUP ORDER BY ")
-		buf.WriteString(sb.withinGroupOrderByCol)
-
-		if sb.withinGroupOrderByOrder != "" {
-			buf.WriteRune(' ')
-			buf.WriteString(sb.withinGroupOrderByOrder)
-		}
+		buf.WriteString(strings.Join(sb.withinGroupOrderByExprs, ", "))
 
 		sb.injection.WriteTo(buf, selectMarkerAfterWithinGroupOrderBy)
 	}

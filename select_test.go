@@ -41,7 +41,7 @@ func ExampleSelectBuilder() {
 		"modified_at > created_at + "+sb.Var(86400), // It's allowed to write arbitrary SQL.
 	)
 	sb.GroupBy("status").Having(sb.NotIn("status", 4, 5))
-	sb.WithinGroupOrderBy("status").WithinGroupOrderByDesc()
+	sb.WithinGroupOrderBy(sb.Desc("status"))
 	sb.OrderBy(
 		sb.Asc("modified_at"),
 	)
