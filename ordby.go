@@ -17,6 +17,10 @@ func (o *OrdBy) orderBy(value string, dir string) string {
 }
 
 func (o *OrdBy) orderByMulti(values []string, dir string) string {
+	if len(values) == 0 {
+		return ""
+	}
+
 	return fmt.Sprintf("%s%s", strings.Join(values, fmt.Sprintf("%s, ", dir)), dir)
 }
 
