@@ -13,12 +13,9 @@ import (
 func TestOrdBy(t *testing.T) {
 	a := assert.New(t)
 	cases := map[string]func() string{
-		"kekw":                 func() string { return newTestOrdBy().NoDir("kekw") },
-		"memes ASC":            func() string { return newTestOrdBy().Asc("memes") },
-		"oof DESC":             func() string { return newTestOrdBy().Desc("oof") },
-		"kekw, wkek":           func() string { return newTestOrdBy().NoDirMulti([]string{"kekw", "wkek"}) },
-		"memes ASC, jokes ASC": func() string { return newTestOrdBy().AscMulti([]string{"memes", "jokes"}) },
-		"oof DESC, foo DESC":   func() string { return newTestOrdBy().DescMulti([]string{"oof", "foo"}) },
+		"kekw":      func() string { return newTestOrdBy().NoDir("kekw") },
+		"memes ASC": func() string { return newTestOrdBy().Asc("memes") },
+		"oof DESC":  func() string { return newTestOrdBy().Desc("oof") },
 	}
 
 	for expected, f := range cases {

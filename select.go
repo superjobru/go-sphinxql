@@ -108,25 +108,16 @@ func (sb *SelectBuilder) GroupBy(col ...string) *SelectBuilder {
 	return sb
 }
 
-func filterEmpty(values *[]string) (r []string) {
-	for _, v := range *values {
-		if v != "" {
-			r = append(r, v)
-		}
-	}
-	return
-}
-
 // WithinGroupOrderBy sets expressions of WITHIN GROUP ORDER BY in SELECT.
 func (sb *SelectBuilder) WithinGroupOrderBy(withinGroupOrderByExpr ...string) *SelectBuilder {
-	sb.withinGroupOrderByExprs = filterEmpty(&withinGroupOrderByExpr)
+	sb.withinGroupOrderByExprs = withinGroupOrderByExpr
 	sb.marker = selectMarkerAfterWithinGroupOrderBy
 	return sb
 }
 
 // OrderBy sets expressions of ORDER BY in SELECT.
 func (sb *SelectBuilder) OrderBy(orderByExpr ...string) *SelectBuilder {
-	sb.orderByExprs = filterEmpty(&orderByExpr)
+	sb.orderByExprs = orderByExpr
 	sb.marker = selectMarkerAfterOrderBy
 	return sb
 }
