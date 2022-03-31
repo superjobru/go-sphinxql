@@ -65,7 +65,7 @@ func (o *Opt) FieldWeights(values NamedIntegerList) string {
 
 	buf.WriteString(")")
 
-	return fmt.Sprintf("field_weights = %s", o.Args.Add(buf.String()))
+	return fmt.Sprintf("field_weights = %s", o.Args.Add(UnquotedString(buf.String())))
 }
 
 // MaxMatches builds a max_matches OPTION.
