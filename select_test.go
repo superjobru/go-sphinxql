@@ -56,7 +56,7 @@ func ExampleSelectBuilder() {
 	fmt.Println(args)
 
 	// Output:
-	// SELECT id, name, COUNT(*) AS t FROM demo.user WHERE MATCH(?) AND id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND id NOT IN (SELECT id FROM banned) AND modified_at > created_at + ? GROUP BY status HAVING status NOT IN (?, ?) WITHIN GROUP ORDER BY status DESC ORDER BY modified_at ASC LIMIT 10 OFFSET 5 OPTION comment = ?, ranker = ?
+	// SELECT id, name, COUNT(*) AS t FROM demo.user WHERE MATCH(?) AND id > ? AND name LIKE ? AND (id_card IS NULL OR status IN (?, ?, ?)) AND id NOT IN (SELECT id FROM banned) AND modified_at > created_at + ? GROUP BY status HAVING status NOT IN (?, ?) WITHIN GROUP ORDER BY status DESC ORDER BY modified_at ASC LIMIT 5,10 OPTION comment = ?, ranker = ?
 	// [@(name) test 1234 %Du 1 2 5 86400 4 5 kekw wordcount]
 }
 
@@ -147,7 +147,7 @@ func ExampleSelectBuilder_limit_offset() {
 	// SphinxSearch
 	// #1: SELECT * FROM user
 	// #2: SELECT * FROM user
-	// #3: SELECT * FROM user LIMIT 1 OFFSET 0
+	// #3: SELECT * FROM user LIMIT 0,1
 	// #4: SELECT * FROM user LIMIT 1
 }
 

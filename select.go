@@ -215,13 +215,13 @@ func (sb *SelectBuilder) BuildWithFlavor(flavor Flavor, initialArg ...interface{
 
 	if sb.limit >= 0 {
 		buf.WriteString(" LIMIT ")
-		buf.WriteString(strconv.Itoa(sb.limit))
 
 		if sb.offset >= 0 {
-			buf.WriteString(" OFFSET ")
 			buf.WriteString(strconv.Itoa(sb.offset))
+			buf.WriteString(",")
 		}
 
+		buf.WriteString(strconv.Itoa(sb.limit))
 		sb.injection.WriteTo(buf, selectMarkerAfterLimit)
 	}
 
